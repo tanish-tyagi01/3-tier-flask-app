@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = "your-secret-key"
@@ -50,14 +51,14 @@ def index():
         return redirect(url_for("home"))
     return redirect(url_for("register"))
 
-
+# read all the todo
 @app.route("/index")
 @login_required
 def home():
     todos = Todo.query.filter_by(user_id=session["user_id"]).order_by(Todo.id.desc()).all()
     return render_template("index.html", todos=todos)
 
-
+# add a todo
 @app.route("/add", methods=["POST"])
 @login_required
 def add_todo():
@@ -71,6 +72,7 @@ def add_todo():
 
     return redirect(url_for("home"))
 
+# update the todo
 @app.route("/update/<int:todo_id>", methods = ["POST"])
 @login_required
 def update_todo(todo_id):
@@ -87,7 +89,7 @@ def update_todo(todo_id):
         flash("Message replace wit new message", "success")
     return redirect(url_for("home"))
 
-
+# deletes the todo
 @app.route("/delete/<int:todo_id>", methods=["POST"])
 @login_required
 def delete_todo(todo_id):
@@ -103,7 +105,7 @@ def delete_todo(todo_id):
 
     return redirect(url_for("home"))
 
-
+# register the user
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if "user_id" in session:
@@ -113,6 +115,7 @@ def register():
         name = request.form.get("name", "").strip()
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
+        hashed_password = generate_password_hash(password)
         confirm_password = request.form.get("confirm_password", "")
 
         if password != confirm_password:
@@ -126,7 +129,7 @@ def register():
         new_user = User(
             name=name,
             email=email,
-            password=password
+            password=hashed_password
         )
 
         db.session.add(new_user)
@@ -137,7 +140,7 @@ def register():
 
     return render_template("register.html")
 
-
+# login the user
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if "user_id" in session:
@@ -151,7 +154,7 @@ def login():
         user = User.query.filter_by(email=email).first()
           
 
-        if user and user.password == password:
+        if user and check_password_hash(user.password, password):
             session["user_id"] = user.id
             session["user_name"] = user.name
             flash(f"Welcome back, {user.name}!", "success")
@@ -162,7 +165,7 @@ def login():
 
     return render_template("login.html")
 
-
+# user logout
 @app.route("/logout")
 def logout():
     session.clear()
@@ -179,5 +182,4 @@ if __name__ == "__main__":
 
 
 
-print("Hello Tanish, you did great job")
 
