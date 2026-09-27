@@ -1,0 +1,22 @@
+services:
+   mysql:
+    image: mysql:8.0
+    networks:
+      - three-tier
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: devops
+
+   flask-app:
+      build: .
+      networks:
+        - three-tier
+      ports:
+        - "5000:5000"
+      environment:
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_ROOT_USER: root
+        MYSQL_DATABASE: devops
+
+networks:
+  three-tier:
