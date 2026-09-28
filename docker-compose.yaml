@@ -6,6 +6,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: devops
+    volumes:
+      - ./mysql-data:/var/lib/mysql
 
    flask-app:
       build: .
