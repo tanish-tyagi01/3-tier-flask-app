@@ -15,8 +15,6 @@ services:
       container_name: flask-app
       networks:
         - three-tier
-      ports:
-        - "5000:5000"
       environment:
         MYSQL_HOST: mysql
         MYSQL_PASSWORD: root
@@ -25,6 +23,18 @@ services:
 
       depends_on:
         - mysql
+
+   nginx:
+       image: nginx:latest
+       container_name: todo-nginx
+       ports:
+        - "80:80"
+       networks:
+        - "three-tier"
+       volumes:
+        - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+       depends_on:
+        - flask-app
 
 networks:
   three-tier:
