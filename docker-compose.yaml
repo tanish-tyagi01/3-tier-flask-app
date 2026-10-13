@@ -38,3 +38,4 @@ services:
 
 networks:
   three-tier:
+    driver: bridge
