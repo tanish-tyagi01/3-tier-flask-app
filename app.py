@@ -2,11 +2,27 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
+import os
+
+# for Ec2 deployment
+DB_HOST = os.getenv("DB_HOST")
+DB_NAME = os.getenv("DB_NAME", "devops")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
 
 app = Flask(__name__)
 app.secret_key = "your-secret-key"
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:root@mysql/devops"
+# for aws deployment
+''' app.config["SQLALCHEMY_DATABASE_URI"] = (
+    f"mysql+pymysql://{os.environ['DB_USER']}:"
+    f"{os.environ['DB_PASSWORD']}@"
+    f"{os.environ['DB_HOST']}:"
+    f"{os.environ.get('DB_PORT', '3306')}/"
+    f"{os.environ['DB_NAME']}"
+)'''
+
+app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:3306/{DB_NAME}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
@@ -152,7 +168,7 @@ def login():
 
         """It searches the User table for an user whose email matches the given email and .first() serches the first object and None if no one found"""
         user = User.query.filter_by(email=email).first()
-          
+
 
         if user and check_password_hash(user.password, password):
             session["user_id"] = user.id
@@ -173,11 +189,11 @@ def logout():
     return redirect(url_for("login"))
 
 
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
+with app.app_context():
+    db.create_all()
 
-    app.run(host="0.0.0.0", port=5000, debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000, debug=True)
 
 
 

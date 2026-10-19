@@ -9,20 +9,25 @@ services:
       MYSQL_DATABASE: devops
     volumes:
       - ./mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+
 
    flask-app:
       build: .
       container_name: flask-app
       networks:
         - three-tier
-      environment:
-        MYSQL_HOST: mysql
-        MYSQL_PASSWORD: root
-        MYSQL_USER: root
-        MYSQL_DATABASE: devops
-
+      env_file:
+        - .env
       depends_on:
-        - mysql
+        mysql:
+          condition: service_healthy
 
    nginx:
        image: nginx:latest
